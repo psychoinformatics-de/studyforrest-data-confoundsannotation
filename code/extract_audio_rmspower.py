@@ -27,7 +27,7 @@ def parse_arguments():
                         help='input movie file')
 
     parser.add_argument('-o',
-                        default='test/audio_rmspower',
+                        default='test/audio',
                         help='output directory')
 
     args = parser.parse_args()
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     # prepare output path & filename
     in_file = os.path.basename(in_fpath)
-    out_file = os.path.splitext(in_file)[0] + '.tsv'
+    out_file = os.path.splitext(in_file)[0] + '_rms-lrdiff.tsv'
     out_fpath = os.path.join(out_path, out_file)
 
     # save file
