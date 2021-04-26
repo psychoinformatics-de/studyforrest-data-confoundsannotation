@@ -1,0 +1,4 @@
+[submodule "inputs/media"]
+	path = inputs/media
+	url = chaeusler@juseless.inm7.de:/data/project/studyforrest/collection/media
+	datalad-id = da15d84c-9c8b-11e9-a3fb-f0d5bf7b5561
