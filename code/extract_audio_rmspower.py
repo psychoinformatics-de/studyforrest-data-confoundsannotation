@@ -62,19 +62,16 @@ def extract_audio_rmspower(movie_fpath):
     while t <= duration:
         a = reader.read_chunk(chunk_size)
         rms = np.sqrt(np.mean(a ** 2, axis=0))
+        rms_sum = np.sum(rms)
+        lr_diff = np.diff(rms).item()
+
         # print to stdout
-        print('{:.2f},{:.6e},{:.6e}'.format(
-            t,
-            np.sum(rms),
-            np.diff(rms).item()))
-        # create a string to returned to external script
-        current_frame = '{:.2f}\t{:.6e}\t{:.6e}'.format(
-            t,
-            np.sum(rms),
-            np.diff(rms).item())
+        print('{:.2f},{:.6e},{:.6e}'.format(t, rms_sum, lr_diff))
+        # create a line for the list that will be returned by this function
+        cur_frame = '{:.2f}\t{:.6e}\t{:.6e}'.format(t, rms_sum, lr_diff)
 
         # populate the list
-        all_frames.append(current_frame)
+        all_frames.append(cur_frame)
         # prepare next loop
         t += dt
 
