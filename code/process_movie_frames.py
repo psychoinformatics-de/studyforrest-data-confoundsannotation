@@ -8,8 +8,6 @@ To Do:
     - maybe change the standard output directory from 'test' to './'
 
 
-The script will write a CSV table to stdout with the following colums
-
 1. frame-time in seconds
 2. mean perceived luminance upper left quadrant
 3. mean perceived luminance upper right quadrant
@@ -82,9 +80,6 @@ def extract_luminance(moviefile, crop_size):
     # initialize list
     all_frames = []
 
-    # table header
-    print('movie_time,ul,ur,ll,lr')
-
     while t <= duration:
         # grab frame from video file, ensure consistent dtype
         frame_arr = vs.get_frame(t).astype('float64')
@@ -100,11 +95,15 @@ def extract_luminance(moviefile, crop_size):
         # lower right
         lr = float2uint8(bness[270:, 640:].mean())
 
-        # print to stdout
-        print('{:.2f},{:d},{:d},{:d},{:d}'.format(t, ul, ur, ll, lr))
-        # create a line for the list that will be returned by this function
-        cur_frame = '{:.2f}\t{:d}\t{:d}\t{:d}\t{:d}'.format(t, ul, ur, ll, lr)
+        # mean
+        mean = (ul + ur + ll + lr) / 4.0  # float2uint8(bness[:, :].mean())
+        # difference upper half of frame minus lower halt
+        ud_diff = (ul + ur) - (ll + lr)
+        # difference left half of frame minus right half
+        lr_diff = (ul + ll) - (ur + lr)
 
+        # gather info
+        cur_frame = (mean, ud_diff, lr_diff)
         # populate the list
         all_frames.append(cur_frame)
         # prepare next loop
@@ -119,17 +118,27 @@ if __name__ == '__main__':
     # create the output path
     os.makedirs(out_path, exist_ok=True)
 
-    # prepare output path & filename
-    in_file = os.path.basename(in_fpath)
-    out_file = os.path.splitext(in_file)[0] + '_quadr-lum.tsv'
-    out_fpath = os.path.join(out_path, out_file)
-
+    variables = ['mean', 'ud', 'lr']
+    # get the results in a list of tuples representing the 3 variables
     results = extract_luminance(in_fpath, CROP_SIZE)
 
-    # save file
-    with open(out_fpath, 'w') as f:
-        # write header
-        f.write('movie_time\tul\tur\tll\tlr\n')
-        # write the value
-        for line in results:
-            f.write(line + '\n')
+    for idx, variable in enumerate(variables):
+        # construct the lines to be written for the current variable
+        lines = [f'{t*0.04:.2f}\t0.04\t{line[idx]}'
+                 for t, line in enumerate(results)]
+
+        for line in lines:
+            print(line)
+
+        # prepare output path & filename
+        in_file = os.path.basename(in_fpath)
+        out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
+        out_fpath = os.path.join(out_path, out_file)
+
+        # save the file
+        with open(out_fpath, 'w') as f:
+            # write header
+            f.write(f'onset\tduration\t{variable}\n')
+            # write the value
+            for line in lines:
+                f.write(line + '\n')

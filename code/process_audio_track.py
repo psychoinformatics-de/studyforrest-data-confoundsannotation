@@ -29,7 +29,7 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    inDir = args.i
+inDir = args.i
     outDir = args.o
 
     return inDir, outDir
@@ -51,8 +51,8 @@ def extract_audio_rmspower(movie_fpath):
     duration = reader.duration - 0.120
 
     # initialize list using the file header
-    rms_lines = ['start\tduration\trms']
-    lrdiff_lines = ['start\tduration\tlrdiff']
+    rms_lines = ['onset\tduration\trms']
+    lrdiff_lines = ['onset\tduration\tlrdiff']
 
     while t <= duration:
         a = reader.read_chunk(chunk_size)
