@@ -22,6 +22,7 @@ Perceived luminance as proposed: http://alienryderflex.com/hsp.html
 
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from fg_hashing import hash_frame
 import argparse
 import numpy as np
 import os
@@ -44,7 +45,7 @@ def parse_arguments():
                         help='input movie file')
 
     parser.add_argument('-o',
-                        default='test/luminance',
+                        default='test/visual',
                         help='output directory')
 
     args = parser.parse_args()
@@ -80,7 +81,7 @@ def extract_luminance(moviefile, crop_size):
     # initialize list
     all_frames = []
 
-    while t <= duration:
+    while t <= 12: # duration:
         # grab frame from video file, ensure consistent dtype
         frame_arr = vs.get_frame(t).astype('float64')
         # crop bars
@@ -102,8 +103,13 @@ def extract_luminance(moviefile, crop_size):
         # difference left half of frame minus right half
         lr_diff = (ul + ll) - (ur + lr)
 
+        # compute the phash and md5sum
+        frame_arr = vs.get_frame(t).astype('uint8')
+
+        md5sum, percep_hash = hash_frame(frame_arr)
+
         # gather info
-        cur_frame = (mean, ud_diff, lr_diff)
+        cur_frame = (mean, ud_diff, lr_diff, percep_hash, md5sum)
         # populate the list
         all_frames.append(cur_frame)
         # prepare next loop
@@ -118,7 +124,7 @@ if __name__ == '__main__':
     # create the output path
     os.makedirs(out_path, exist_ok=True)
 
-    variables = ['mean', 'ud', 'lr']
+    variables = ['mean', 'ud', 'lr', 'phash', 'md5sum']
     # get the results in a list of tuples representing the 3 variables
     results = extract_luminance(in_fpath, CROP_SIZE)
 
