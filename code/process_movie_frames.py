@@ -81,7 +81,7 @@ def extract_luminance(moviefile, crop_size):
     # initialize list
     all_frames = []
 
-    while t <= 12: # duration:
+    while t <= duration:
         # grab frame from video file, ensure consistent dtype
         frame_arr = vs.get_frame(t).astype('float64')
         # crop bars
@@ -125,16 +125,13 @@ if __name__ == '__main__':
     os.makedirs(out_path, exist_ok=True)
 
     variables = ['mean', 'ud', 'lr', 'phash', 'md5sum']
-    # get the results in a list of tuples representing the 3 variables
+    # get the results in a list of tuples representing the variables
     results = extract_luminance(in_fpath, CROP_SIZE)
 
     for idx, variable in enumerate(variables):
         # construct the lines to be written for the current variable
         lines = [f'{t*0.04:.2f}\t0.04\t{line[idx]}'
                  for t, line in enumerate(results)]
-
-        for line in lines:
-            print(line)
 
         # prepare output path & filename
         in_file = os.path.basename(in_fpath)
