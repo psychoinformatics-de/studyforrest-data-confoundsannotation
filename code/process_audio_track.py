@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-'''
-To Do:
-    - writes a file but still prints all values to stdout
-      which was probably originally used to redirect to a file
-    - maybe change the standard output directory from 'test' to './'
+'''extracts root mean square power and left-right volume from a given video's
+audio track and saves it to a tab-separated values files
 '''
 
 
@@ -17,8 +14,8 @@ def parse_arguments():
     '''
     '''
     parser = argparse.ArgumentParser(
-        description='computes the root mean square power across every movie' +
-        'frame of a stimulus segment'
+        description='computes the root mean square power and left-right' +
+        'volume difference for every movie frame'
     )
 
     parser.add_argument('-i',
@@ -53,29 +50,28 @@ def extract_audio_rmspower(movie_fpath):
     # last few frame after fade-out have no audio
     duration = reader.duration - 0.120
 
-    # initialize list
-    all_frames = []
-
-    # table header
-    print('movie_time,rms,lr_diff')
+    # initialize list using the file header
+    rms_lines = ['start\tduration\trms']
+    lrdiff_lines = ['start\tduration\tlrdiff']
 
     while t <= duration:
         a = reader.read_chunk(chunk_size)
+
         rms = np.sqrt(np.mean(a ** 2, axis=0))
         rms_sum = np.sum(rms)
+        # write line with start, frame duration, value
+        rms_line = f'{t:.2f}\t{dt}\t{rms_sum:.8f}'
+        rms_lines.append(rms_line)
+
         lr_diff = np.diff(rms).item()
+        # write line with start, frame duration, value
+        lrdiff_line = f'{t:.2f}\t{dt}\t{lr_diff:.8f}'
+        lrdiff_lines.append(lrdiff_line)
 
-        # print to stdout
-        print('{:.2f},{:.6e},{:.6e}'.format(t, rms_sum, lr_diff))
-        # create a line for the list that will be returned by this function
-        cur_frame = '{:.2f}\t{:.6e}\t{:.6e}'.format(t, rms_sum, lr_diff)
-
-        # populate the list
-        all_frames.append(cur_frame)
         # prepare next loop
         t += dt
 
-    return all_frames
+    return rms_lines, lrdiff_lines
 
 
 if __name__ == '__main__':
@@ -85,17 +81,16 @@ if __name__ == '__main__':
     os.makedirs(out_path, exist_ok=True)
 
     # call the function that returns a list of lines with tab-separated values
-    results = extract_audio_rmspower(in_fpath)
+    rms_lines, lrdiff_lines = extract_audio_rmspower(in_fpath)
 
-    # prepare output path & filename
-    in_file = os.path.basename(in_fpath)
-    out_file = os.path.splitext(in_file)[0] + '_rms-lrdiff.tsv'
-    out_fpath = os.path.join(out_path, out_file)
+    for variable, lines in zip(['rms', 'lrdiff'], [rms_lines, lrdiff_lines]):
+        # prepare output path & filename
+        in_file = os.path.basename(in_fpath)
+        out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
+        out_fpath = os.path.join(out_path, out_file)
 
-    # save file
-    with open(out_fpath, 'w') as f:
-        # write header
-        f.write('movie_time\trms\tlr_diff\n')
-        # write the value
-        for line in results:
-            f.write(line + '\n')
+        # save file
+        with open(out_fpath, 'w') as f:
+            # write the value
+            for line in lines:
+                f.write(line + '\n')
