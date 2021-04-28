@@ -3,8 +3,9 @@
 for each quadrant
 
 To Do:
-    - writes a file but still prints all values to stdout
-      which was probably originally used to redirect to a file
+
+    - check why current phashes are different from formerly computed phashes
+    - implement (on-the-fly) computing of perceptual differences
     - maybe change the standard output directory from 'test' to './'
 
 
@@ -26,6 +27,7 @@ from fg_hashing import hash_frame
 import argparse
 import numpy as np
 import os
+
 
 # constant(s)
 CROP_SIZE = (90, 630)
@@ -69,7 +71,7 @@ def float2uint8(f):
     return int(np.round(f))
 
 
-def extract_luminance(moviefile, crop_size):
+def extract_visual_information(moviefile, crop_size):
     '''
     '''
     vs = VideoFileClip(moviefile)
@@ -117,6 +119,50 @@ def extract_luminance(moviefile, crop_size):
 
     return all_frames
 
+def compute_perceptual_differences():
+    '''Main body of the former script 'compute_perceptual_difference.py' now as
+    in this script. Needs to be implemented either above
+
+
+    # Compute perceptual difference if neighboring movie frames, by means of the
+    # Hamming distance of they perceptual hashes (phash).
+    #
+    # Input pHashes have 144 bit length, and the output distance is normalized by
+    # by this maximum, i.e. the maximum distance of 1.0 indicates that all
+    # 144 bits changes, the minim non-zero distance is 1/144 -> 0.00694
+    #
+    # The output file has one line per frame (plus header line). Each distance
+    # indicates the distance of the current frame with respect to the one
+    # immediately preceding it.
+    #
+    '''
+    import imagehash as ih
+import numpy as np
+    import os
+
+    # load hash data
+    phdata = np.recfromcsv('test/visual/fg_av_ger_seg0_phash.tsv', delimiter='\t')  # sys.argv[1])
+    movie_time = phdata['onset']
+
+    # convert into bit arrays
+    # I hate the following line
+    phashes = np.array(
+        [ih.hex_to_hash(i.decode()).hash.ravel() for i in phdata['phash']])
+
+    diff1 = [
+        np.count_nonzero(p != phashes[i]) / phashes.shape[1]
+        for i, p in enumerate(phashes[1:])]
+
+    # saving (as performed in the old script
+    odir = out_path
+    if not os.path.exists(odir):
+        os.makedirs(odir)
+
+    # header plus first frame diff set to 0
+    print('movie_time,norm_diff\n0.00,0.0')
+    for i, d in enumerate(diff1):
+        print('%.2f,%f' % (movie_time[i + 1], d))
+
 
 if __name__ == '__main__':
     # cl argument
@@ -126,7 +172,7 @@ if __name__ == '__main__':
 
     variables = ['mean', 'ud', 'lr', 'phash', 'md5sum']
     # get the results in a list of tuples representing the variables
-    results = extract_luminance(in_fpath, CROP_SIZE)
+    results = extract_visual_information(in_fpath, CROP_SIZE)
 
     for idx, variable in enumerate(variables):
         # construct the lines to be written for the current variable
