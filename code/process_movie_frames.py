@@ -25,6 +25,7 @@ Perceived luminance as proposed: http://alienryderflex.com/hsp.html
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from fg_hashing import hash_frame
 import argparse
+import imagehash as ih
 import numpy as np
 import os
 
@@ -119,10 +120,10 @@ def extract_visual_information(moviefile, crop_size):
 
     return all_frames
 
-def compute_perceptual_differences():
+
+def compute_perceptual_differences(in_fpath):
     '''Main body of the former script 'compute_perceptual_difference.py' now as
     in this script. Needs to be implemented either above
-
 
     # Compute perceptual difference if neighboring movie frames, by means of the
     # Hamming distance of they perceptual hashes (phash).
@@ -136,16 +137,12 @@ def compute_perceptual_differences():
     # immediately preceding it.
     #
     '''
-    import imagehash as ih
-import numpy as np
-    import os
-
     # load hash data
-    phdata = np.recfromcsv('test/visual/fg_av_ger_seg0_phash.tsv', delimiter='\t')  # sys.argv[1])
-    movie_time = phdata['onset']
+    phdata = np.recfromcsv(in_fpath, delimiter='\t')  # sys.argv[1])
 
-    # convert into bit arrays
-    # I hate the following line
+    # ih.hex_to_hash takes only one argument in current imagehash module
+    # previously, the line was
+    # [ih.hex_to_hash(i.decode(), 12).hash.ravel() for i in phdata['phash']])
     phashes = np.array(
         [ih.hex_to_hash(i.decode()).hash.ravel() for i in phdata['phash']])
 
@@ -154,14 +151,20 @@ import numpy as np
         for i, p in enumerate(phashes[1:])]
 
     # saving (as performed in the old script
-    odir = out_path
-    if not os.path.exists(odir):
-        os.makedirs(odir)
+    out_fpath = in_fpath.replace('_phash', '_normdiff')
 
     # header plus first frame diff set to 0
-    print('movie_time,norm_diff\n0.00,0.0')
-    for i, d in enumerate(diff1):
-        print('%.2f,%f' % (movie_time[i + 1], d))
+    lines = [f'{t*0.04:.2f}\t0.04\t{line:.6f}'
+             for t, line in enumerate(diff1)]
+
+    with open(out_fpath, 'w') as f:
+        # write header
+        f.write(f'onset\tduration\tnorm_diff\n')
+        # write the value
+        for line in lines:
+            f.write(line + '\n')
+
+    return None
 
 
 if __name__ == '__main__':
@@ -170,10 +173,11 @@ if __name__ == '__main__':
     # create the output path
     os.makedirs(out_path, exist_ok=True)
 
-    variables = ['mean', 'ud', 'lr', 'phash', 'md5sum']
+    variables = ['brmean', 'brud', 'brlr', 'phash', 'md5sum']
     # get the results in a list of tuples representing the variables
     results = extract_visual_information(in_fpath, CROP_SIZE)
 
+    # write one file per extracted info
     for idx, variable in enumerate(variables):
         # construct the lines to be written for the current variable
         lines = [f'{t*0.04:.2f}\t0.04\t{line[idx]}'
@@ -191,3 +195,7 @@ if __name__ == '__main__':
             # write the value
             for line in lines:
                 f.write(line + '\n')
+
+    # compute perceptual differences (and write to file)
+    in_phashes_fpath = os.path.join(out_path, 'fg_av_ger_seg0_phash.tsv')
+    compute_perceptual_differences(in_phashes_fpath)
