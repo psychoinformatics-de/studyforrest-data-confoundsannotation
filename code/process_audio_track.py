@@ -15,10 +15,11 @@ def parse_arguments():
     '''
     parser = argparse.ArgumentParser(
         description='computes the root mean square power and left-right' +
-        'volume difference for every movie frame'
+        'volume difference for every 40ms of a segment'
     )
 
     parser.add_argument('-i',
+                        nargs='+',  # allow regular expression in argument
                         default='inputs/media/stimuli/phase2/' +
                         'fg_av_ger_seg0.mkv',
                         help='input movie file')
@@ -29,10 +30,10 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-inDir = args.i
-    outDir = args.o
+    in_files = sorted(args.i)
+    out_dir = args.o
 
-    return inDir, outDir
+    return in_files, out_dir
 
 
 def extract_audio_rmspower(movie_fpath):
@@ -76,21 +77,23 @@ def extract_audio_rmspower(movie_fpath):
 
 if __name__ == '__main__':
     # get command line arguments
-    in_fpath, out_path = parse_arguments()
+    in_fpathes, out_path = parse_arguments()
     # create the output path
     os.makedirs(out_path, exist_ok=True)
 
-    # call the function that returns a list of lines with tab-separated values
-    rms_lines, lrdiff_lines = extract_audio_rmspower(in_fpath)
+    for in_fpath in in_fpathes:
+        # call the function that returns a list
+        # of lines with tab-separated values
+        rms_lines, lrdiff_lines = extract_audio_rmspower(in_fpath)
 
-    for variable, lines in zip(['rms', 'lrdiff'], [rms_lines, lrdiff_lines]):
-        # prepare output path & filename
-        in_file = os.path.basename(in_fpath)
-        out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
-        out_fpath = os.path.join(out_path, out_file)
+        for variable, lines in zip(['rms', 'lrdiff'], [rms_lines, lrdiff_lines]):
+            # prepare output path & filename
+            in_file = os.path.basename(in_fpath)
+            out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
+            out_fpath = os.path.join(out_path, out_file)
 
-        # save file
-        with open(out_fpath, 'w') as f:
-            # write the value
-            for line in lines:
-                f.write(line + '\n')
+            # save file
+            with open(out_fpath, 'w') as f:
+                # write the value
+                for line in lines:
+                    f.write(line + '\n')

@@ -53,10 +53,10 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    inDir = sorted(args.i)
-    outDir = args.o
+    in_files = sorted(args.i)
+    out_dir = args.o
 
-    return inDir, outDir
+    return in_files, out_dir
 
 
 def rgb2pluminance(frame):
@@ -174,8 +174,6 @@ if __name__ == '__main__':
 
     variables = ['brmean', 'brud', 'brlr', 'phash', 'md5sum']
     for in_fpath in in_fpathes:
-
-        print(in_fpath)
         # get the results in a list of tuples representing the variables
         results = extract_visual_information(in_fpath, CROP_SIZE)
 
