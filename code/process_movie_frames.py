@@ -2,13 +2,6 @@
 '''Reads in a given movie file frame-by-frame and outputs average luminance
 for each quadrant
 
-To Do:
-
-    - check why current phashes are different from formerly computed phashes
-    - implement (on-the-fly) computing of perceptual differences
-    - maybe change the standard output directory from 'test' to './'
-
-
 1. frame-time in seconds
 2. mean perceived luminance upper left quadrant
 3. mean perceived luminance upper right quadrant
