@@ -21,7 +21,6 @@ bars in the movie stimulus files.
 Perceived luminance as proposed: http://alienryderflex.com/hsp.html
 '''
 
-
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from fg_hashing import hash_frame
 import argparse
@@ -38,14 +37,15 @@ def parse_arguments():
     '''
     '''
     parser = argparse.ArgumentParser(
-        description='computes the luminance per quadrant for every movie' +
-        'frame of a stimulus segment'
+        description='computes low-level confounds per every movie frame' +
+        'of a stimulus segment'
     )
 
     parser.add_argument('-i',
+                        nargs='+',  # allow regular expression in argument
                         default='inputs/media/stimuli/phase2/' +
                         'fg_av_ger_seg0.mkv',
-                        help='input movie file')
+                        help='input movie file (or pattern)')
 
     parser.add_argument('-o',
                         default='test/visual',
@@ -53,7 +53,7 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    inDir = args.i
+    inDir = sorted(args.i)
     outDir = args.o
 
     return inDir, outDir
@@ -125,17 +125,16 @@ def compute_perceptual_differences(in_fpath):
     '''Main body of the former script 'compute_perceptual_difference.py' now as
     in this script. Needs to be implemented either above
 
-    # Compute perceptual difference if neighboring movie frames, by means of the
-    # Hamming distance of they perceptual hashes (phash).
-    #
-    # Input pHashes have 144 bit length, and the output distance is normalized by
-    # by this maximum, i.e. the maximum distance of 1.0 indicates that all
-    # 144 bits changes, the minim non-zero distance is 1/144 -> 0.00694
-    #
-    # The output file has one line per frame (plus header line). Each distance
-    # indicates the distance of the current frame with respect to the one
-    # immediately preceding it.
-    #
+    Compute perceptual difference if neighboring movie frames, by means of the
+    Hamming distance of they perceptual hashes (phash).
+
+    Input pHashes have 144 bit length, and the output distance is normalized by
+    by this maximum, i.e. the maximum distance of 1.0 indicates that all
+    144 bits changes, the minim non-zero distance is 1/144 -> 0.00694
+
+    The output file has one line per frame (plus header line). Each distance
+    indicates the distance of the current frame with respect to the one
+    immediately preceding it.
     '''
     # load hash data
     phdata = np.recfromcsv(in_fpath, delimiter='\t')  # sys.argv[1])
@@ -168,34 +167,39 @@ def compute_perceptual_differences(in_fpath):
 
 
 if __name__ == '__main__':
-    # cl argument
-    in_fpath, out_path = parse_arguments()
+    # get command line argument
+    in_fpathes, out_path = parse_arguments()
     # create the output path
     os.makedirs(out_path, exist_ok=True)
 
     variables = ['brmean', 'brud', 'brlr', 'phash', 'md5sum']
-    # get the results in a list of tuples representing the variables
-    results = extract_visual_information(in_fpath, CROP_SIZE)
+    for in_fpath in in_fpathes:
 
-    # write one file per extracted info
-    for idx, variable in enumerate(variables):
-        # construct the lines to be written for the current variable
-        lines = [f'{t*0.04:.2f}\t0.04\t{line[idx]}'
-                 for t, line in enumerate(results)]
+        print(in_fpath)
+        # get the results in a list of tuples representing the variables
+        results = extract_visual_information(in_fpath, CROP_SIZE)
 
-        # prepare output path & filename
-        in_file = os.path.basename(in_fpath)
-        out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
-        out_fpath = os.path.join(out_path, out_file)
+        # write one file per extracted info
+        for idx, variable in enumerate(variables):
+            # construct the lines to be written for the current variable
+            lines = [f'{t*0.04:.2f}\t0.04\t{line[idx]}'
+                     for t, line in enumerate(results)]
 
-        # save the file
-        with open(out_fpath, 'w') as f:
-            # write header
-            f.write(f'onset\tduration\t{variable}\n')
-            # write the value
-            for line in lines:
-                f.write(line + '\n')
+            # prepare output path & filename
+            in_file = os.path.basename(in_fpath)
+            out_file = os.path.splitext(in_file)[0] + f'_{variable}.tsv'
+            out_fpath = os.path.join(out_path, out_file)
 
-    # compute perceptual differences (and write to file)
-    in_phashes_fpath = os.path.join(out_path, 'fg_av_ger_seg0_phash.tsv')
-    compute_perceptual_differences(in_phashes_fpath)
+            # save the file
+            with open(out_fpath, 'w') as f:
+                # write header
+                f.write(f'onset\tduration\t{variable}\n')
+                # write the value
+                for line in lines:
+                    f.write(line + '\n')
+
+        # compute perceptual differences (and write to file)
+        in_phashes_f = os.path.splitext(in_file)[0] + f'_phash.tsv'
+        in_phashes_fpath = os.path.join(out_path, in_phashes_f)
+        compute_perceptual_differences(in_phashes_fpath)
+        print(in_phashes_fpath)
