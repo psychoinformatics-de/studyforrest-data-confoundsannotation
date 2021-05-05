@@ -142,6 +142,10 @@ def compute_perceptual_differences(in_fpath):
         np.count_nonzero(p != phashes[i]) / phashes.shape[1]
         for i, p in enumerate(phashes[1:])]
 
+    # insert a perceptual difference of 0.0 at the arrays beginning
+    # and cut the last NaN
+    diff1 = np.insert(diff1, 0, 0.0)[:-1]
+
     # saving (as performed in the old script
     out_fpath = in_fpath.replace('_phash', '_normdiff')
 
