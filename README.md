@@ -1,4 +1,4 @@
-# Annotations of low-level perceptual confounds in the research cut of audio-visual movie "Forrest Gump" and it's audio-description
+# Annotations of low-level perceptual confounds in the research cut of the audio-visual movie "Forrest Gump" and it's audio-description
 
 [![made-with-datalad](https://www.datalad.org/badges/made_with.svg)](https://datalad.org)
 [![PDDL-licensed](https://img.shields.io/badge/license-PDDL-blue.svg)](http://opendatacommons.org/licenses/pddl/summary)
