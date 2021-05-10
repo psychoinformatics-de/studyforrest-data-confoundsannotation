@@ -19,7 +19,7 @@ For further information about the project visit: http://studyforrest.org
     * `visual/*_brmean.tsv`: mean brightness of a movie frame
     * `visual/*_brlr.tsv`: difference in brightness left minus right half of each movie frame
     * `visual/*_brud.tsv`: difference in brightness upper half minus lower half of each movie frame (a.k.a. "bring me that horizon")
-    * `visual/*_phash.tsv.`: perceptual hash of each movie frame (computed by the phash function of [imagehash v4.1.0](https://pypi.org/project/ImageHash/)
+    * `visual/*_phash.tsv.`: perceptual hash of each movie frame (computed by the phash function of [imagehash v4.1.0](https://pypi.org/project/ImageHash/))
     * `visual/*_normdiff.tsv`: normalized perceptual difference of each movie frame in respect to its previous movie frame
   
 
