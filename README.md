@@ -17,10 +17,10 @@ For further information about the project visit: http://studyforrest.org
     * `audio/*_rms.tsv`: root-mean square power (a.k.a. volume)
     * `audio/*_lrdiff.tsv`: left-right volume difference
     * `visual/*_brmean.tsv`: mean brightness of a movie frame
-    * `visual/*_brlr.tsv`: difference in brightness left minus right half of the movie frame
-    * `visual/*_brud.tsv`: difference in brightness upper half minus lower half of the movie frame (a.k.a. "bring me that horizon")
-    * `visual/*_phash.tsv.`: perceptual hash of every movie frame (computed by the phash function of [imagehash v4.1.0](https://pypi.org/project/ImageHash/)
-    * `visual/*_normdiff.tsv`: normalized perceptual difference of the current movie frame to the previous movie frame
+    * `visual/*_brlr.tsv`: difference in brightness left minus right half of each movie frame
+    * `visual/*_brud.tsv`: difference in brightness upper half minus lower half of each movie frame (a.k.a. "bring me that horizon")
+    * `visual/*_phash.tsv.`: perceptual hash of each movie frame (computed by the phash function of [imagehash v4.1.0](https://pypi.org/project/ImageHash/)
+    * `visual/*_normdiff.tsv`: normalized perceptual difference of each movie frame in respect to its previous movie frame
   
 
 - ``code/``
